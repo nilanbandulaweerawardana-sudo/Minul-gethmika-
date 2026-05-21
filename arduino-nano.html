@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arduino Nano</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#0a0f0a;
+    color:#00ff88;
+    font-family:'Share Tech Mono',monospace;
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:16px 8px 30px;
+  }
+  h1 {
+    font-family:'Orbitron',monospace;
+    font-size:1.3rem; letter-spacing:4px;
+    color:#00ff88; text-shadow:0 0 20px #00ff8866;
+    margin-bottom:4px;
+  }
+  .subtitle { font-size:0.65rem; color:#00ff8866; letter-spacing:2px; margin-bottom:18px; }
+
+  /* ── OUTER WRAPPER ── */
+  .outer {
+    display:flex; flex-direction:column; align-items:center; gap:0;
+  }
+
+  /* ── PHOTO + PINS ROW ── */
+  .main-row {
+    display:flex; align-items:stretch; gap:0;
+  }
+
+  /* ── PIN COLUMNS ── */
+  .pins-left, .pins-right {
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    padding:38px 0 6px; /* top offset to align with board pins */
+  }
+  .pin-row { display:flex; align-items:center; height:19px; }
+  .pins-left .pin-row { flex-direction:row-reverse; }
+  .pins-right .pin-row { flex-direction:row; }
+
+  .pin-label {
+    font-size:0.58rem; white-space:nowrap; cursor:pointer;
+    padding:1px 4px; border-radius:3px; transition:all 0.2s; letter-spacing:0.5px;
+  }
+  .pin-label:hover,.pin-label.active { background:#00ff8822; color:#fff; text-shadow:0 0 8px #00ff88; }
+
+  .pin-dot {
+    width:9px; height:9px; border-radius:50%;
+    border:1.5px solid #00ff88; background:#1a2a1a;
+    margin:0 2px; cursor:pointer; transition:all 0.2s; flex-shrink:0;
+  }
+  .pin-dot:hover,.pin-dot.active { background:#00ff88; box-shadow:0 0 8px #00ff88; }
+
+  .pin-label.power-pin  { color:#ff6644; }
+  .pin-label.gnd-pin    { color:#aaa; }
+  .pin-label.analog-pin { color:#44aaff; }
+  .pin-label.digital-pin{ color:#00ff88; }
+  .pin-label.special-pin{ color:#ffcc00; }
+
+  /* ── BOARD SVG WRAPPER ── */
+  .board-svg-wrap {
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ── INFO PANEL ── */
+  .info-panel {
+    margin-top:14px;
+    background:#0f1f0f; border:1px solid #00ff8833; border-radius:6px;
+    padding:10px 14px; min-height:46px; width:100%; max-width:460px;
+    font-size:0.63rem; color:#00ff88bb; line-height:1.6; transition:all 0.3s;
+  }
+  .info-panel .pin-name {
+    font-family:'Orbitron',monospace; font-size:0.72rem;
+    color:#00ff88; display:block; margin-bottom:3px;
+  }
+  .info-panel .default { color:#00ff8855; font-style:italic; }
+
+  /* ── LEGEND ── */
+  .legend {
+    display:flex; gap:10px; flex-wrap:wrap;
+    justify-content:center; margin-top:12px; font-size:0.56rem;
+  }
+  .legend-item { display:flex; align-items:center; gap:4px; }
+  .legend-dot  { width:8px; height:8px; border-radius:50%; }
+</style>
+</head>
+<body>
+
+<h1>ARDUINO NANO</h1>
+<div class="subtitle">ATmega328P · 16MHz · 5V · Interactive Pinout</div>
+
+<div class="outer">
+  <div class="main-row">
+
+    <!-- LEFT PINS -->
+    <div class="pins-left" id="left-pins"></div>
+
+    <!-- BOARD SVG -->
+    <div class="board-svg-wrap">
+      <svg id="board" width="130" height="320" viewBox="0 0 130 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- PCB body -->
+        <defs>
+          <linearGradient id="pcb" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#1a4a2a"/>
+            <stop offset="50%"  stop-color="#0d3318"/>
+            <stop offset="100%" stop-color="#082010"/>
+          </linearGradient>
+          <linearGradient id="chipG" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#2a2a2a"/>
+            <stop offset="100%" stop-color="#111"/>
+          </linearGradient>
+          <linearGradient id="usbG" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#999"/>
+            <stop offset="100%" stop-color="#555"/>
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- board outline -->
+        <rect x="5" y="30" width="120" height="280" rx="5" ry="5" fill="url(#pcb)" stroke="#00ff8844" stroke-width="1"/>
+
+        <!-- silkscreen lines -->
+        <rect x="10" y="35" width="110" height="270" rx="3" fill="none" stroke="#00ff8815" stroke-width="0.5"/>
+
+        <!-- USB Mini-B connector -->
+        <rect x="42" y="10" width="46" height="24" rx="3" fill="url(#usbG)" stroke="#aaa" stroke-width="1"/>
+        <rect x="47" y="14" width="36" height="14" rx="1" fill="#333"/>
+        <text x="65" y="24" text-anchor="middle" font-size="6" fill="#ccc" font-family="monospace">USB</text>
+
+        <!-- Mounting hole top-left -->
+        <circle cx="18" cy="48" r="4" fill="#0a1a0a" stroke="#00ff8833" stroke-width="0.8"/>
+        <!-- Mounting hole top-right -->
+        <circle cx="112" cy="48" r="4" fill="#0a1a0a" stroke="#00ff8833" stroke-width="0.8"/>
+        <!-- Mounting hole bottom-left -->
+        <circle cx="18" cy="298" r="4" fill="#0a1a0a" stroke="#00ff8833" stroke-width="0.8"/>
+        <!-- Mounting hole bottom-right -->
+        <circle cx="112" cy="298" r="4" fill="#0a1a0a" stroke="#00ff8833" stroke-width="0.8"/>
+
+        <!-- LEDs row -->
+        <!-- PWR LED (red) -->
+        <circle cx="30" cy="62" r="4" fill="#ff2222" stroke="#ff4444" stroke-width="0.5" filter="url(#glow)"/>
+        <text x="30" y="74" text-anchor="middle" font-size="4.5" fill="#ff666688" font-family="monospace">PWR</text>
+        <!-- TX LED -->
+        <circle cx="45" cy="62" r="4" fill="#00ff44" stroke="#00ff88" stroke-width="0.5">
+          <animate attributeName="opacity" values="1;0.2;1" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <text x="45" y="74" text-anchor="middle" font-size="4.5" fill="#00ff8888" font-family="monospace">TX</text>
+        <!-- RX LED -->
+        <circle cx="60" cy="62" r="4" fill="#ffcc00" stroke="#ffdd44" stroke-width="0.5">
+          <animate attributeName="opacity" values="1;0.3;1" dur="2.2s" repeatCount="indefinite"/>
+        </circle>
+        <text x="60" y="74" text-anchor="middle" font-size="4.5" fill="#ffcc0088" font-family="monospace">RX</text>
+        <!-- L LED (D13) -->
+        <circle cx="75" cy="62" r="4" fill="#ff8800" stroke="#ffaa22" stroke-width="0.5">
+          <animate attributeName="opacity" values="1;0.1;1" dur="1s" repeatCount="indefinite"/>
+        </circle>
+        <text x="75" y="74" text-anchor="middle" font-size="4.5" fill="#ff880088" font-family="monospace">L</text>
+
+        <!-- ATmega328P chip -->
+        <rect x="35" y="130" width="60" height="70" rx="3" fill="url(#chipG)" stroke="#444" stroke-width="1"/>
+        <!-- chip notch -->
+        <circle cx="65" cy="131" r="4" fill="#0a0f0a"/>
+        <!-- chip legs left -->
+        <line x1="28" y1="140" x2="35" y2="140" stroke="#888" stroke-width="1.5"/>
+        <line x1="28" y1="150" x2="35" y2="150" stroke="#888" stroke-width="1.5"/>
+        <line x1="28" y1="160" x2="35" y2="160" stroke="#888" stroke-width="1.5"/>
+        <line x1="28" y1="170" x2="35" y2="170" stroke="#888" stroke-width="1.5"/>
+        <line x1="28" y1="180" x2="35" y2="180" stroke="#888" stroke-width="1.5"/>
+        <line x1="28" y1="190" x2="35" y2="190" stroke="#888" stroke-width="1.5"/>
+        <!-- chip legs right -->
+        <line x1="95" y1="140" x2="102" y2="140" stroke="#888" stroke-width="1.5"/>
+        <line x1="95" y1="150" x2="102" y2="150" stroke="#888" stroke-width="1.5"/>
+        <line x1="95" y1="160" x2="102" y2="160" stroke="#888" stroke-width="1.5"/>
+        <line x1="95" y1="170" x2="102" y2="170" stroke="#888" stroke-width="1.5"/>
+        <line x1="95" y1="180" x2="102" y2="180" stroke="#888" stroke-width="1.5"/>
+        <line x1="95" y1="190" x2="102" y2="190" stroke="#888" stroke-width="1.5"/>
+        <text x="65" y="158" text-anchor="middle" font-size="7" fill="#aaa" font-family="monospace" font-weight="bold">ATmega</text>
+        <text x="65" y="170" text-anchor="middle" font-size="7" fill="#aaa" font-family="monospace" font-weight="bold">328P</text>
+        <text x="65" y="182" text-anchor="middle" font-size="5" fill="#66886688" font-family="monospace">ARDUINO</text>
+        <text x="65" y="191" text-anchor="middle" font-size="5" fill="#66886688" font-family="monospace">NANO</text>
+
+        <!-- Crystal -->
+        <rect x="46" y="82" width="28" height="12" rx="6" fill="none" stroke="#aaa" stroke-width="1"/>
+        <rect x="50" y="84" width="20" height="8" rx="2" fill="linear-gradient(#bbb,#888)"/>
+        <ellipse cx="60" cy="88" rx="8" ry="3" fill="#ccc" opacity="0.6"/>
+        <text x="60" y="103" text-anchor="middle" font-size="4.5" fill="#88888866" font-family="monospace">16MHz</text>
+
+        <!-- Voltage Reg -->
+        <rect x="82" y="84" width="22" height="14" rx="2" fill="#1a1a3a" stroke="#3333aa" stroke-width="0.8"/>
+        <text x="93" y="94" text-anchor="middle" font-size="4.5" fill="#6688aa" font-family="monospace">REG</text>
+
+        <!-- Board label -->
+        <text x="65" y="118" text-anchor="middle" font-size="6" fill="#00ff8844" font-family="monospace" letter-spacing="2">ARDUINO NANO</text>
+
+        <!-- Trace lines decorative -->
+        <path d="M20 110 L110 110" stroke="#00ff8808" stroke-width="0.5"/>
+        <path d="M20 225 L110 225" stroke="#00ff8808" stroke-width="0.5"/>
+
+        <!-- Extra components -->
+        <!-- Small cap -->
+        <rect x="88" y="105" width="8" height="14" rx="1" fill="#2a1a0a" stroke="#8866" stroke-width="0.8"/>
+        <text x="92" y="122" text-anchor="middle" font-size="4" fill="#88664466" font-family="monospace">CAP</text>
+
+        <!-- Reset button -->
+        <rect x="46" y="228" width="20" height="14" rx="3" fill="#222" stroke="#555" stroke-width="1"/>
+        <circle cx="56" cy="235" r="4" fill="#cc2222" stroke="#ff3333" stroke-width="0.5"/>
+        <text x="56" y="250" text-anchor="middle" font-size="4.5" fill="#cc222288" font-family="monospace">RST</text>
+
+        <!-- Pin holes - Left side (16 pins, top to bottom) -->
+        <!-- These represent the actual through-hole pads -->
+        <g fill="#c8a800" stroke="#a08000" stroke-width="0.5">
+          <!-- left column y starts at 52, step 19 -->
+          <rect x="5"  y="49"  width="9" height="6" rx="1"/>
+          <rect x="5"  y="68"  width="9" height="6" rx="1"/>
+          <rect x="5"  y="87"  width="9" height="6" rx="1"/>
+          <rect x="5"  y="106" width="9" height="6" rx="1"/>
+          <rect x="5"  y="125" width="9" height="6" rx="1"/>
+          <rect x="5"  y="144" width="9" height="6" rx="1"/>
+          <rect x="5"  y="163" width="9" height="6" rx="1"/>
+          <rect x="5"  y="182" width="9" height="6" rx="1"/>
+          <rect x="5"  y="201" width="9" height="6" rx="1"/>
+          <rect x="5"  y="220" width="9" height="6" rx="1"/>
+          <rect x="5"  y="239" width="9" height="6" rx="1"/>
+          <rect x="5"  y="258" width="9" height="6" rx="1"/>
+          <rect x="5"  y="277" width="9" height="6" rx="1"/>
+          <rect x="5"  y="296" width="9" height="6" rx="1"/>
+        </g>
+        <!-- Pin holes right -->
+        <g fill="#c8a800" stroke="#a08000" stroke-width="0.5">
+          <rect x="116" y="49"  width="9" height="6" rx="1"/>
+          <rect x="116" y="68"  width="9" height="6" rx="1"/>
+          <rect x="116" y="87"  width="9" height="6" rx="1"/>
+          <rect x="116" y="106" width="9" height="6" rx="1"/>
+          <rect x="116" y="125" width="9" height="6" rx="1"/>
+          <rect x="116" y="144" width="9" height="6" rx="1"/>
+          <rect x="116" y="163" width="9" height="6" rx="1"/>
+          <rect x="116" y="182" width="9" height="6" rx="1"/>
+          <rect x="116" y="201" width="9" height="6" rx="1"/>
+          <rect x="116" y="220" width="9" height="6" rx="1"/>
+          <rect x="116" y="239" width="9" height="6" rx="1"/>
+          <rect x="116" y="258" width="9" height="6" rx="1"/>
+          <rect x="116" y="277" width="9" height="6" rx="1"/>
+          <rect x="116" y="296" width="9" height="6" rx="1"/>
+        </g>
+
+        <!-- Pin holes center (extra row) -->
+        <!-- Hole centers for left pins -->
+        <g fill="#0a0f0a">
+          <circle cx="9.5" cy="52"  r="1.5"/>
+          <circle cx="9.5" cy="71"  r="1.5"/>
+          <circle cx="9.5" cy="90"  r="1.5"/>
+          <circle cx="9.5" cy="109" r="1.5"/>
+          <circle cx="9.5" cy="128" r="1.5"/>
+          <circle cx="9.5" cy="147" r="1.5"/>
+          <circle cx="9.5" cy="166" r="1.5"/>
+          <circle cx="9.5" cy="185" r="1.5"/>
+          <circle cx="9.5" cy="204" r="1.5"/>
+          <circle cx="9.5" cy="223" r="1.5"/>
+          <circle cx="9.5" cy="242" r="1.5"/>
+          <circle cx="9.5" cy="261" r="1.5"/>
+          <circle cx="9.5" cy="280" r="1.5"/>
+          <circle cx="9.5" cy="299" r="1.5"/>
+        </g>
+        <g fill="#0a0f0a">
+          <circle cx="120.5" cy="52"  r="1.5"/>
+          <circle cx="120.5" cy="71"  r="1.5"/>
+          <circle cx="120.5" cy="90"  r="1.5"/>
+          <circle cx="120.5" cy="109" r="1.5"/>
+          <circle cx="120.5" cy="128" r="1.5"/>
+          <circle cx="120.5" cy="147" r="1.5"/>
+          <circle cx="120.5" cy="166" r="1.5"/>
+          <circle cx="120.5" cy="185" r="1.5"/>
+          <circle cx="120.5" cy="204" r="1.5"/>
+          <circle cx="120.5" cy="223" r="1.5"/>
+          <circle cx="120.5" cy="242" r="1.5"/>
+          <circle cx="120.5" cy="261" r="1.5"/>
+          <circle cx="120.5" cy="280" r="1.5"/>
+          <circle cx="120.5" cy="299" r="1.5"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- RIGHT PINS -->
+    <div class="pins-right" id="right-pins"></div>
+
+  </div><!-- end main-row -->
+
+  <!-- INFO PANEL -->
+  <div class="info-panel" id="info-panel">
+    <span class="default">👆 Click any pin label or dot to see its description</span>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#ff6644"></div><span style="color:#ff6644">Power</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#aaa"></div><span style="color:#aaa">GND</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#44aaff"></div><span style="color:#44aaff">Analog</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00ff88"></div><span style="color:#00ff88">Digital</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffcc00"></div><span style="color:#ffcc00">Special</span></div>
+  </div>
+
+</div><!-- end outer -->
+
+<script>
+/* ─── PIN DATA ─── */
+const leftPins = [
+  { name:"D1/TX",  type:"special", desc:"Digital pin 1 — UART Transmit (TX). Sends serial data to another device." },
+  { name:"D0/RX",  type:"special", desc:"Digital pin 0 — UART Receive (RX). Receives serial data from another device." },
+  { name:"RST",    type:"special", desc:"Reset pin. Pull LOW to restart the Arduino program." },
+  { name:"GND",    type:"ground",  desc:"Ground (0V). Connect the negative side of all components here." },
+  { name:"D2",     type:"digital", desc:"Digital I/O pin 2. Supports external interrupt (INT0). HIGH or LOW only." },
+  { name:"D3~",    type:"digital", desc:"Digital I/O pin 3. PWM (~) output. Supports external interrupt (INT1)." },
+  { name:"D4",     type:"digital", desc:"Digital I/O pin 4. General purpose digital input or output." },
+  { name:"D5~",    type:"digital", desc:"Digital I/O pin 5. PWM (~) output. Good for servo or motor speed control." },
+  { name:"D6~",    type:"digital", desc:"Digital I/O pin 6. PWM (~) output." },
+  { name:"D7",     type:"digital", desc:"Digital I/O pin 7. General purpose digital input or output." },
+  { name:"D8",     type:"digital", desc:"Digital I/O pin 8. General purpose digital input or output." },
+  { name:"D9~",    type:"digital", desc:"Digital I/O pin 9. PWM (~) output." },
+  { name:"D10~",   type:"digital", desc:"Digital I/O pin 10. PWM (~). Also SPI SS (Slave Select)." },
+  { name:"D11~",   type:"special", desc:"Digital pin 11. PWM (~). SPI MOSI — Master Out Slave In data line." },
+];
+
+const rightPins = [
+  { name:"VIN",    type:"power",   desc:"Voltage Input — connect 7 to 12V DC here to power board without USB." },
+  { name:"GND",    type:"ground",  desc:"Ground (0V). Use this if your circuit needs a second GND point." },
+  { name:"RST",    type:"special", desc:"Reset pin (same as left RST). Pull LOW to restart the board." },
+  { name:"5V",     type:"power",   desc:"Regulated 5V output from onboard regulator. Powers 5V sensors/modules." },
+  { name:"A7",     type:"analog",  desc:"Analog input 7. Reads 0–5V and converts to value 0–1023. Input only." },
+  { name:"A6",     type:"analog",  desc:"Analog input 6. Reads 0–5V → value 0–1023. Input only." },
+  { name:"A5",     type:"analog",  desc:"Analog pin 5. Also I²C SCL — clock line for I2C displays and sensors." },
+  { name:"A4",     type:"analog",  desc:"Analog pin 4. Also I²C SDA — data line for I2C displays and sensors." },
+  { name:"A3",     type:"analog",  desc:"Analog input 3. Reads 0–5V → value 0–1023." },
+  { name:"A2",     type:"analog",  desc:"Analog input 2. Reads 0–5V → value 0–1023." },
+  { name:"A1",     type:"analog",  desc:"Analog input 1. Reads 0–5V → value 0–1023." },
+  { name:"A0",     type:"analog",  desc:"Analog input 0. Reads 0–5V → value 0–1023." },
+  { name:"AREF",   type:"special", desc:"Analog Reference voltage. Set a custom reference for analogRead()." },
+  { name:"3V3",    type:"power",   desc:"3.3V output (max 50mA). Powers 3.3V sensors and Bluetooth modules." },
+];
+
+function typeClass(t){
+  const m={power:'power-pin',ground:'gnd-pin',analog:'analog-pin',special:'special-pin',digital:'digital-pin'};
+  return m[t]||'digital-pin';
+}
+
+let activeEl=null;
+function showInfo(pin){
+  document.getElementById('info-panel').innerHTML=
+    `<span class="pin-name">${pin.name}</span>${pin.desc}`;
+}
+
+function buildPins(id, pins, side){
+  const container=document.getElementById(id);
+  // Pin y positions match SVG pads: start 52, step 19
+  const yStart=52, yStep=19;
+  pins.forEach((pin,i)=>{
+    const row=document.createElement('div');
+    row.className='pin-row';
+    row.style.height=yStep+'px';
+
+    const label=document.createElement('span');
+    label.className=`pin-label ${typeClass(pin.type)}`;
+    label.textContent=pin.name;
+
+    const dot=document.createElement('div');
+    dot.className='pin-dot';
+
+    function activate(){
+      if(activeEl){ activeEl.label.classList.remove('active'); activeEl.dot.classList.remove('active'); }
+      label.classList.add('active'); dot.classList.add('active');
+      activeEl={label,dot};
+      showInfo(pin);
+    }
+    label.addEventListener('click',activate);
+    dot.addEventListener('click',activate);
+
+    if(side==='left'){ row.appendChild(label); row.appendChild(dot); }
+    else             { row.appendChild(dot);   row.appendChild(label); }
+    container.appendChild(row);
+  });
+}
+
+buildPins('left-pins', leftPins, 'left');
+buildPins('right-pins', rightPins, 'right');
+</script>
+</body>
+</html>
